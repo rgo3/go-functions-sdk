@@ -74,3 +74,10 @@ func (fb *FunctionBuilder) Firestore() *FirestoreFunctionBuilder {
 		FunctionBuilder: fb,
 	}
 }
+
+// Storage creates a StorageFunctionBuilder
+func (fb *FunctionBuilder) Storage() *StorageFunctionBuilder {
+	return &StorageFunctionBuilder{
+		FunctionBuilder: fb,
+	}
+}

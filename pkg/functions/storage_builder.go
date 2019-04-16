@@ -31,11 +31,11 @@ type StorageFunctionBuilder struct {
 
 	GCBucket string
 	Event    string
-	Handler  func(ctx context.Context, event StorageEvent)
+	Handler  func(ctx context.Context, event StorageEvent) error
 }
 
 // StorageFunction holds the function signature of storage event triggered function
-type StorageFunction func(ctx context.Context, event StorageEvent)
+type StorageFunction func(ctx context.Context, event StorageEvent) error
 
 // Bucket sets the trigger bucket
 func (fb *StorageFunctionBuilder) Bucket(bucket string) *StorageFunctionBuilder {
