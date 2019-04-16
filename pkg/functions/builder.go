@@ -79,5 +79,6 @@ func (fb *FunctionBuilder) Firestore() *FirestoreFunctionBuilder {
 func (fb *FunctionBuilder) Storage() *StorageFunctionBuilder {
 	return &StorageFunctionBuilder{
 		FunctionBuilder: fb,
+		GCBucket:        "default",
 	}
 }
