@@ -12,28 +12,46 @@ import (
 	"github.com/urfave/cli"
 )
 
+func filterPackages(pkgs *parse.Packages, funcNames []string) []types.Object {
+	availableFunctions := pkgs.Functions()
+	stagedFunctions := availableFunctions
+
+	stagedFunctions = []types.Object{}
+	filteredPkgs := parse.Packages{}
+	for _, pkg := range *pkgs {
+		for _, fn := range pkg.Functions {
+			pkgFunctions := []types.Object{}
+			for _, fnName := range funcNames {
+				if strings.Compare(fnName, fn.Name()) == 0 {
+					pkgFunctions = append(pkgFunctions, fn)
+					continue
+				}
+			}
+
+			if len(pkgFunctions) > 0 {
+				stagedFunctions = append(stagedFunctions, pkgFunctions...)
+
+				pkg.Functions = pkgFunctions
+				filteredPkgs = append(filteredPkgs, pkg)
+			}
+		}
+	}
+
+	*pkgs = filteredPkgs
+
+	return stagedFunctions
+}
+
 func deployFuncs(ctx *cli.Context) error {
 	funcNames := strings.Split(ctx.String("only"), ",")
 
 	pkgs := parse.GetPackages()
-	availableFunctions := pkgs.Functions()
-	stagedFunctions := availableFunctions
+
+	var stagedFunctions []types.Object
+	stagedFunctions = pkgs.Functions()
 
 	if strings.Compare(funcNames[0], "all") != 0 {
-		stagedFunctions = []types.Object{}
-		for _, fn := range availableFunctions {
-			keep := false
-			for _, funcName := range funcNames {
-				if strings.Compare(fn.Name(), funcName) == 0 {
-					keep = true
-					break
-				}
-			}
-
-			if keep {
-				stagedFunctions = append(stagedFunctions, fn)
-			}
-		}
+		stagedFunctions = filterPackages(&pkgs, funcNames)
 	}
 
 	if len(stagedFunctions) == 0 {
