@@ -9,6 +9,7 @@ import (
 	"path"
 	"plugin"
 	"strconv"
+	"strings"
 
 	"github.com/google/logger"
 
@@ -51,6 +52,14 @@ func setProjectID() error {
 	return nil
 }
 
+func bucketNameToResource(bucket string) string {
+	if strings.Compare(bucket, "default") == 0 {
+		bucket = projectID
+	}
+
+	return fmt.Sprintf("gs://%s.appspot.com", bucket)
+}
+
 func firestoreDocToResource(doc string) string {
 	return fmt.Sprintf("projects/%s/databases/(default)/documents/%s", projectID, doc)
 }
@@ -79,7 +88,7 @@ func getDeployFlags(fnSym plugin.Symbol) ([]string, *functions.FunctionBuilder) 
 		builder = storageBuilder.FunctionBuilder
 		triggerFlags = []string{
 			"--trigger-event", storageBuilder.Event,
-			"--trigger-resource", storageBuilder.GCBucket,
+			"--trigger-resource", bucketNameToResource(storageBuilder.GCBucket),
 		}
 		break
 	}
