@@ -14,6 +14,7 @@ import (
 	"github.com/google/logger"
 
 	"github.com/dergoegge/go-functions-sdk/internal/pkg/build"
+	"github.com/dergoegge/go-functions-sdk/internal/pkg/parse"
 	"github.com/dergoegge/go-functions-sdk/pkg/functions"
 )
 
@@ -96,7 +97,7 @@ func getDeployFlags(fnSym plugin.Symbol) ([]string, *functions.FunctionBuilder) 
 	return triggerFlags, builder
 }
 
-func createDeployCommand(fnPlugin *plugin.Plugin, fn types.Object) (*exec.Cmd, error) {
+func createDeployCommand(fnPlugin *plugin.Plugin, fn types.Object, pkgPath string) (*exec.Cmd, error) {
 	fnSym, err := fnPlugin.Lookup(fn.Name())
 	if err != nil {
 		return nil, err
@@ -109,7 +110,7 @@ func createDeployCommand(fnPlugin *plugin.Plugin, fn types.Object) (*exec.Cmd, e
 		"deploy",
 		fn.Name(),
 		"--runtime", "go111",
-		"--source", "./" + fn.Pkg().Name(),
+		"--source", "./" + pkgPath,
 		"--entry-point", fn.Name() + ".Handler",
 		"--region", fnBuilder.GCRegion,
 		"--memory", fnBuilder.RuntimeOpts.Memory,
@@ -120,7 +121,27 @@ func createDeployCommand(fnPlugin *plugin.Plugin, fn types.Object) (*exec.Cmd, e
 	return exec.Command("gcloud", cmdArgs...), nil
 }
 
-func Prepare(stagedFunctions []types.Object) ([]*exec.Cmd, error) {
+func preparePackage(pkg parse.Package) ([]*exec.Cmd, error) {
+	fnPlugin, err := plugin.Open(path.Join(build.PluginFolder, pkg.Name+".so"))
+	if err != nil {
+		return nil, err
+	}
+
+	cmds := []*exec.Cmd{}
+	for _, fn := range pkg.Functions {
+		cmd, err := createDeployCommand(fnPlugin, fn, pkg.Path)
+		if err != nil {
+			return nil, err
+		}
+
+		cmds = append(cmds, cmd)
+	}
+
+	return cmds, nil
+}
+
+// Prepare creates deploy commands for the functions in the provided packages.
+func Prepare(fnPackages parse.Packages) ([]*exec.Cmd, error) {
 	err := setProjectID()
 	if err != nil {
 		return nil, err
@@ -129,20 +150,13 @@ func Prepare(stagedFunctions []types.Object) ([]*exec.Cmd, error) {
 	logger.Infof("Project: %s", projectID)
 
 	cmds := []*exec.Cmd{}
-	for _, fn := range stagedFunctions {
-		pkg := fn.Pkg().Name()
-
-		fnPlugin, err := plugin.Open(path.Join(build.PluginFolder, pkg+".so"))
+	for _, pkg := range fnPackages {
+		pkgCmds, err := preparePackage(pkg)
 		if err != nil {
 			return nil, err
 		}
 
-		cmd, err := createDeployCommand(fnPlugin, fn)
-		if err != nil {
-			return nil, err
-		}
-
-		cmds = append(cmds, cmd)
+		cmds = append(cmds, pkgCmds...)
 	}
 
 	return cmds, nil

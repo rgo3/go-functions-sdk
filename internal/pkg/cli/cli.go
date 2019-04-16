@@ -51,7 +51,7 @@ func deployFuncs(ctx *cli.Context) error {
 		return err
 	}
 
-	deployCmds, err := deploy.Prepare(stagedFunctions)
+	deployCmds, err := deploy.Prepare(pkgs)
 	if err != nil {
 		return err
 	}
