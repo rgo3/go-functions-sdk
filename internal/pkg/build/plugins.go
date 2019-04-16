@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	PluginFolder = "./plugins"
+	PluginFolder = "./.build"
 )
 
 func findFiles(dirPath string) []string {
