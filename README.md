@@ -63,13 +63,3 @@ go install github.com/dergoegge/go-functions-sdk/cmd/gocf
 
 ## Comands
 gocf deploy [--only "comma seperated list of functions to deploy"]
-
-## Todos
-
-* support more function triggers
-* add custom oauth2 flow and use cloudfunctions api instead of the gcloud util
-* manage deletion of functions
-* run `go mod init/tidy` for function modules
-* run `go mod vendor` for function modules
-* add examples
-* write tests
