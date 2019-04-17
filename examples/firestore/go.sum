@@ -1,0 +1,6 @@
+github.com/dergoegge/go-functions-sdk v0.0.0-20190416220645-7c90a6934dc0 h1:7axZMcYfD11pbOSV0ozgMrXLpZCB2bswrJJzNK2teHo=
+github.com/dergoegge/go-functions-sdk v0.0.0-20190416220645-7c90a6934dc0/go.mod h1:Lcm8JRkobC43PedZQF7TyjeIB6XSUUUYVriS6kIaM10=
+github.com/google/logger v1.0.1/go.mod h1:w7O8nrRr0xufejBlQMI83MXqRusvREoJdaAxV+CoAB4=
+github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
+golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+golang.org/x/sys v0.0.0-20190410170021-cc4d4f50624c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
