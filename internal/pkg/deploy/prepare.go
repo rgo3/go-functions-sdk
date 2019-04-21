@@ -1,8 +1,6 @@
 package deploy
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"go/types"
 	"os/exec"
@@ -11,47 +9,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/logger"
-
 	"github.com/dergoegge/go-functions-sdk/internal/pkg/build"
+	"github.com/dergoegge/go-functions-sdk/internal/pkg/config"
 	"github.com/dergoegge/go-functions-sdk/internal/pkg/parse"
 	"github.com/dergoegge/go-functions-sdk/pkg/functions"
 )
 
-type gcloudProjectConfig struct {
-	Configuration struct {
-		Properties struct {
-			Core struct {
-				Project string `json:"project"`
-			} `json:"core"`
-		} `json:"properties"`
-	} `json:"configuration"`
-}
-
 var projectID string
-
-func setProjectID() error {
-	cmd := exec.Command("gcloud", "config", "config-helper",
-		"--format", "json")
-
-	var outBuf bytes.Buffer
-	cmd.Stdout = &outBuf
-	cmd.Stderr = &outBuf
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf(outBuf.String())
-	}
-
-	var config gcloudProjectConfig
-	err = json.Unmarshal(outBuf.Bytes(), &config)
-	if err != nil {
-		return nil
-	}
-
-	projectID = config.Configuration.Properties.Core.Project
-
-	return nil
-}
 
 func bucketNameToResource(bucket string) string {
 	if strings.Compare(bucket, "default") == 0 {
@@ -142,12 +106,15 @@ func preparePackage(pkg parse.Package) ([]*exec.Cmd, error) {
 
 // Prepare creates deploy commands for the functions in the provided packages.
 func Prepare(fnPackages parse.Packages) ([]*exec.Cmd, error) {
-	err := setProjectID()
+	conf, err := config.NewSDKConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Infof("Project: %s", projectID)
+	projectID, err = conf.ProjectID()
+	if err != nil {
+		return nil, err
+	}
 
 	cmds := []*exec.Cmd{}
 	for _, pkg := range fnPackages {
