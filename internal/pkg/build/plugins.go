@@ -1,81 +1,27 @@
 package build
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/dergoegge/go-functions-sdk/internal/pkg/parse"
-	"github.com/google/logger"
 )
 
 const (
+	// PluginFolder is the folder in which the plugins are being build
 	PluginFolder = "./.build"
 )
 
-func findFiles(dirPath string) []string {
-	files, err := ioutil.ReadDir(dirPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	result := make([]string, 0)
-	for _, f := range files {
-		pkg := path.Join(dirPath, f.Name())
-		if f.IsDir() {
-			//result = append(result, findFiles(pkg)...)
-			continue
-		}
-
-		result = append(result, pkg)
-	}
-
-	return result
-}
-
-func copyFile(src string, dst string) error {
-	err := os.MkdirAll(filepath.Dir(dst), os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	s, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	info, err := s.Stat()
-	if err != nil {
-		return err
-	}
-
-	err = os.Chmod(f.Name(), info.Mode())
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(f, s)
-	return err
-}
-
 func removeInitFunc(file string, initFuncDecl *ast.FuncDecl) {
-	logger.Infof("Removing init from %s\n", file)
 	read, _ := ioutil.ReadFile(file)
 
 	_initFuncText := []byte(strings.Replace(
@@ -95,8 +41,7 @@ func removeInitFunc(file string, initFuncDecl *ast.FuncDecl) {
 	}
 }
 
-// renames all init funcs in the packages to _init so they wont be called
-// in for the created plugins
+// renames all init funcs in the packages to _init so they wont be called for the created plugins
 func removeInitFuncs(pkgs []string) {
 	for _, pkg := range pkgs {
 		parsedPkgs, _ := parser.ParseDir(token.NewFileSet(), path.Join(PluginFolder, pkg), nil, parser.ParseComments)
@@ -115,29 +60,43 @@ func removeInitFuncs(pkgs []string) {
 	}
 }
 
+// creates plugin for pkg
+func createPlugin(pkg parse.Package, errChan chan error) {
+	cmd := exec.Command("go", "build", "-buildmode=plugin",
+		"-o", "./"+path.Join(PluginFolder, pkg.Name+".so"),
+		"./"+path.Join(PluginFolder, pkg.Path))
+
+	// create output buffer for error logging
+	var outBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &outBuf
+
+	// copy env and turn off go modules
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "GO111MODULE=off")
+
+	err := cmd.Run()
+	if err != nil {
+		err = fmt.Errorf("Failed to build plugin for package:%s\n%s", pkg.Name, outBuf.String())
+	}
+
+	errChan <- err
+}
+
+// creates all plugins for pkgs
 func createPlugins(pkgs parse.Packages) error {
 	if len(pkgs) == 0 {
 		return fmt.Errorf("No pkgs provided to plugin creation")
 	}
 
 	errChan := make(chan error)
-
 	for _, pkg := range pkgs {
-		cmd := exec.Command("go", "build", "-buildmode=plugin",
-			"-o", "./"+path.Join(PluginFolder, pkg.Name+".so"),
-			"./"+path.Join(PluginFolder, pkg.Path))
-
-		logger.Info("Creating plugin for package:", pkg.Name)
-		go func(pkg string) {
-			errChan <- cmd.Run()
-			logger.Info("Successfully created plugin for package:", pkg)
-		}(pkg.Name)
+		go createPlugin(pkg, errChan)
 	}
 
 	for range pkgs {
 		err := <-errChan
 		if err != nil {
-			logger.Error("Failed to create plugin", err)
 			return err
 		}
 	}
@@ -145,27 +104,9 @@ func createPlugins(pkgs parse.Packages) error {
 	return nil
 }
 
-func copyPackages(pkgs parse.Packages) error {
-	for _, pkg := range pkgs {
-		files := findFiles(pkg.Path)
-
-		for _, file := range files {
-			filePath := path.Join(PluginFolder, file)
-			copyFile(file, filePath)
-
-			read, _ := ioutil.ReadFile(filePath)
-			newContent := strings.Replace(string(read), "package "+pkg.Name, "package main", 1)
-			err := ioutil.WriteFile(filePath, []byte(newContent), 0)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// Plugins creates golang plugins from all toplevel packages in ./
+// Plugins creates golang plugins from all toplevel packages in ./.
+// Plugins are named after the package name e.g.: "pkg.so".
+// One plugin holds all function builder symbols defined in that package.
 func Plugins(pkgs parse.Packages) error {
 	// remove previous plugin foulder
 	os.RemoveAll(PluginFolder)
