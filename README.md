@@ -62,4 +62,9 @@ go install github.com/dergoegge/go-functions-sdk/cmd/gocf
 ```
 
 ## Comands
-gocf deploy [--only "comma seperated list of functions to deploy"]
+
+Deploy cloud functions:  
+`gocf deploy [--only "comma seperated list of functions to deploy"]`
+
+List deployed cloud functions:  
+`gocf list`
