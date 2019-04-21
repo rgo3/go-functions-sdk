@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"go/types"
+	"os"
 	"strings"
 
 	"github.com/dergoegge/go-functions-sdk/internal/pkg/build"
@@ -45,12 +46,12 @@ func filterPackages(pkgs *parse.Packages, funcNames []string) []types.Object {
 func deployFuncs(ctx *cli.Context) error {
 	logger.Info("Looking for functions to deploy")
 
+	// remove previous plugin build folder
+	os.RemoveAll(build.PluginFolder)
+
 	funcNames := strings.Split(ctx.String("only"), ",")
-
 	pkgs := parse.GetPackages()
-
-	var stagedFunctions []types.Object
-	stagedFunctions = pkgs.Functions()
+	stagedFunctions := pkgs.Functions()
 
 	if strings.Compare(funcNames[0], "all") != 0 {
 		stagedFunctions = filterPackages(&pkgs, funcNames)

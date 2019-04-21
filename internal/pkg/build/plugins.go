@@ -108,9 +108,6 @@ func createPlugins(pkgs parse.Packages) error {
 // Plugins are named after the package name e.g.: "pkg.so".
 // One plugin holds all function builder symbols defined in that package.
 func Plugins(pkgs parse.Packages) error {
-	// remove previous plugin foulder
-	os.RemoveAll(PluginFolder)
-
 	// create plugin folder
 	os.Mkdir(PluginFolder, os.ModePerm)
 
