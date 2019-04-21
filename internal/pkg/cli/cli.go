@@ -25,15 +25,12 @@ func Init() *cli.App {
 				},
 			},
 		},
-		// {
-		// 	Name:    "list",
-		// 	Aliases: []string{"ls"},
-		// 	Usage:   "List all deployed cloud functions",
-		// 	Action: func(c *cli.Context) error {
-		// 		fmt.Println("added task: ", c.String("only"))
-		// 		return nil
-		// 	},
-		// },
+		{
+			Name:    "list",
+			Aliases: []string{"ls"},
+			Usage:   "List all deployed cloud functions",
+			Action:  list,
+		},
 		// {
 		// 	Name:    "login",
 		// 	Aliases: []string{"l"},
