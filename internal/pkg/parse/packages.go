@@ -45,7 +45,7 @@ func GetPackages() Packages {
 		importPath := path.Join(defaultImportPath, file.Name())
 		importerPkg, err := imp.Import(importPath)
 		if err != nil {
-			logger.Error(err)
+			logger.Warningf("Could not import %s:\n%v", importPath, err)
 			continue
 		}
 
