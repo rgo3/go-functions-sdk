@@ -43,6 +43,8 @@ func filterPackages(pkgs *parse.Packages, funcNames []string) []types.Object {
 }
 
 func deployFuncs(ctx *cli.Context) error {
+	logger.Info("Looking for functions to deploy")
+
 	funcNames := strings.Split(ctx.String("only"), ",")
 
 	pkgs := parse.GetPackages()
