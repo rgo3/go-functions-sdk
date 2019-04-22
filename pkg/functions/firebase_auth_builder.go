@@ -30,7 +30,7 @@ type AuthEvent struct {
 	DisplayName   string `json:"displayName"`
 	PhotoURL      string `json:"photoURL"`
 
-	ProviderData struct {
+	ProviderData []struct {
 		UID         string `json:"uid"`
 		Email       string `json:"email"`
 		DisplayName string `json:"displayName"`
