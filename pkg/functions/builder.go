@@ -82,3 +82,10 @@ func (fb *FunctionBuilder) Storage() *StorageFunctionBuilder {
 		GCBucket:        "default",
 	}
 }
+
+// Auth creates a FirebaseAuthFunctionBuilder
+func (fb *FunctionBuilder) Auth() *FirebaseAuthFunctionBuilder {
+	return &FirebaseAuthFunctionBuilder{
+		FunctionBuilder: fb,
+	}
+}

@@ -56,6 +56,14 @@ func getDeployFlags(fnSym plugin.Symbol) ([]string, *functions.FunctionBuilder) 
 			"--trigger-resource", bucketNameToResource(storageBuilder.GCBucket),
 		}
 		break
+	case **functions.FirebaseAuthFunctionBuilder:
+		authBuilder := (*fnSym.(**functions.FirebaseAuthFunctionBuilder))
+		builder = authBuilder.FunctionBuilder
+		triggerFlags = []string{
+			"--trigger-event", authBuilder.Event,
+			"--trigger-resource", projectID,
+		}
+		break
 	}
 
 	return triggerFlags, builder
