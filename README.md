@@ -8,7 +8,7 @@ Code the functions and deploy with `gocf deploy`.
 
 ## Install the functions package
 ```
-go get -u github.com/dergoegge/go-functions-sdk
+go get github.com/dergoegge/go-functions-sdk
 ```
 
 ## Function examples
