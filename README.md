@@ -50,7 +50,17 @@ var FirestoreFuncName = functions.New().
 
 ```
 
-Currently only http, firestore and storage triggered functions are supported.
+More examples for different trigger types are located in the `examples` directory.
+
+## Supported trigger types
+
+* Http
+* Firestore
+* Storage
+* PubSub
+* Firebase authentication
+
+More comming soon.
 
 ## Install the deployment tool
 
