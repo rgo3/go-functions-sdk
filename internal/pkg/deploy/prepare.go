@@ -64,6 +64,12 @@ func getDeployFlags(fnSym plugin.Symbol) ([]string, *functions.FunctionBuilder) 
 			"--trigger-resource", projectID,
 		}
 		break
+	case **functions.PubSubFunctionBuilder:
+		pubsubBuilder := (*fnSym.(**functions.PubSubFunctionBuilder))
+		builder = pubsubBuilder.FunctionBuilder
+		triggerFlags = []string{
+			"--trigger-topic", pubsubBuilder.PSTopic,
+		}
 	}
 
 	return triggerFlags, builder

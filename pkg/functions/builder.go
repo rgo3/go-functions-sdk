@@ -89,3 +89,10 @@ func (fb *FunctionBuilder) Auth() *FirebaseAuthFunctionBuilder {
 		FunctionBuilder: fb,
 	}
 }
+
+// PubSub creates a PubSubFunctionBuilder
+func (fb *FunctionBuilder) PubSub() *PubSubFunctionBuilder {
+	return &PubSubFunctionBuilder{
+		FunctionBuilder: fb,
+	}
+}
